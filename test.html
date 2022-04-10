@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      iframe
+      {
+        width:50vw;
+        height: 50vh;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+    <div id="player"></div>
+    <script src="youtube_iframe_api.js"></script>
+    <script>
+      // 2. This code loads the IFrame Player API code asynchronously.
+      var tag = document.createElement('script');
+
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      // 3. This function creates an <iframe> (and YouTube player)
+      //    after the API code downloads.
+    </script>
+    <script>
+      let socket = new WebSocket("ws://radiant-crag-69893.herokuapp.com/");
+      socket.onopen= function(e)
+      {
+        console.log("connection succcessful");
+      }
+      socket.onclose=function(e)
+      {
+        console.log("connection is closing");
+      }
+      socket.onerror = function(error) {
+      console.log(`[error] ${error.message}`);
+      };
+      var player;
+      player = new Youtube.Player({
+        "video_id":"rNmwALV7L3Y",
+        'https':true,
+        
+        "params":{
+        height: '720px',
+          width: '405px'},
+          "on": {
+                // 'time_change':(event)=>{console.log(event);},
+                'state_change':(event)=>{console.log(event);
+                if(event.current==1)
+                {
+                  playVideo();
+                }
+                else if(event.current==2)
+                {
+                  pauseVideo();
+                }
+                },
+                'time_change':(event)=>{
+                  if(event.current.current_time-event.previous.current_time>=1.5)
+                  { const time_changed={
+                    'time_change':event.current.current_time
+                  }
+                    socket.send(JSON.stringify(time_changed));
+                  }
+                  console.log("time_change:",event);
+                  // localStorage.setItem('begin',JSON.stringify(event));
+
+                  
+                }
+
+                }
+      });
+
+      document.body.append(player.iframe);
+      function onPlayerReady(event) {
+        console.log(event.target)
+        console.log(player.get_iframe())
+      
+      }
+      
+      function onPlayerStateChange(event) {
+        console.log(player.getIframe());
+       
+      }
+      
+      function stopVideo() {
+        localStorage.setItem('begin','stop');
+        player.stop();
+      }
+      function pauseVideo(){
+      // {localStorage.setItem('begin','pause');
+      var msg={
+          'state':"pause"
+        }
+      socket.send(JSON.stringify(msg));
+        player.pause();
+      }
+      function playVideo()
+      {
+        // localStorage.setItem('begin','play');
+        var msg={
+          'state':"play"
+        }
+        socket.send(JSON.stringify(msg));
+        player.play();
+      }
+      
+    </script>
+    <button onclick="playVideo()">Play</button>
+    <button onclick="pauseVideo()">pause</button>
+  </body>
+</html>

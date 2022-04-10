@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <div id="player"></div>
+      
+    <script>
+      let socket = new WebSocket("ws://radiant-crag-69893.herokuapp.com/");
+      socket.onopen= function(e)
+      {
+        console.log("connection succcessful");
+      }
+      socket.onclose=function(e)
+      {
+        console.log("connection is closing");
+      }
+      socket.onerror = function(error) {
+      console.log(`[error] ${error.message}`);
+      };
+      var tag = document.createElement('script');
+
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      var player;
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+          height: '390',
+          width: '640',
+          videoId: 'rNmwALV7L3Y',
+          autoplay: 1,
+          playerVars: {
+            'playsinline': 1
+          },
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange,
+
+          }
+        });
+      }
+      function onPlayerReady(event) {
+        const playerNode = event.target;
+        console.log(playerNode);
+      }
+      window.addEventListener("storage", function () {
+        var data= window.localStorage.getItem('begin');
+        if (data == 'play')
+        {
+            playVideo();
+            
+        }
+        else if(data == 'stop')
+        {
+            stopVideo();
+        }
+        else if(data=='pause')
+        {
+            pauseVideo();
+        }
+        else 
+        {
+          const time_data=JSON.parse(data);
+          console.log(time_data);
+          seekTo(time_data);
+        }  
+      }
+        
+        );
+      socket.onmessage = function(event){
+        event.data.text().then((result)=>{
+          // console.log(result);
+          const data_event = JSON.parse(result);
+          console.log(data_event);
+          if(data_event['state']=='play')
+          {
+            playVideo();
+          }
+          else if(data_event['state']=='pause')
+          {
+            pauseVideo();
+          }
+          else 
+          {console.log(data_event['time_change']);
+            // player.seekTo(data_event['time_change']);
+            seekTo(data_event['time_change']);
+            // player.seekTo(data_event['s'].time_changed)
+          }
+        })
+
+        // const event_data= JOSN.parse(event.data);
+        // if (event_data['state'] == 'play')
+        // {
+        //   playVideo();
+        // }
+        // else if (event_data['state']=='pause')
+        // {
+        //   pauseVideo();
+        // }
+      }
+      function onPlayerStateChange(event) {
+
+      }
+      
+      function stopVideo() {
+        player.stopVideo();
+      }
+      function pauseVideo()
+      {
+        player.pauseVideo();
+      }
+      function playVideo()
+      {
+        player.playVideo();
+        
+      }
+      function seekTo(event_data){
+      // { const time_data= JSON.parse(event_data);
+        console.log(event_data);
+        
+        player.seekTo(event_data);
+        
+
+      }
+    </script>
+  </body>
+</html>
